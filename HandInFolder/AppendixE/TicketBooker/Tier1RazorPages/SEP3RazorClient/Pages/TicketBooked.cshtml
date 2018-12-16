@@ -1,0 +1,23 @@
+@page
+@model TicketBookedModel
+@{
+    ViewData["Title"] = "Ticket Booked";    
+}
+    <form method="post">
+        <h4>Email</h4>
+        <br>
+        <input type="email" name="Emailaddress" required> 
+        <br>
+        <h4>Telephone Number</h4>
+        <input type="tel" id="Telephone" name="Telephone" pattern="[0-9]{8}" max = "8" min ="8" required>
+        <br>
+        <span class="note">Format: 12345678 for Danish telephone numbers</span>
+        <br>
+        <br>
+        <input type="submit">
+    </form>
+    @if(@Model.EmailAddress != null && @Model.Telephone != null)
+    {
+        <p>Your ticket has been sent to @Model.EmailAddress</p>
+        <p>If there will be any issues with your booking you will get a message at @Model.Telephone</p>
+    }
