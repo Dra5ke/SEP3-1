@@ -7,26 +7,49 @@ import java.net.Socket;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import common.Init;
 import common.Movie;
 import common.Package;
 import tier1.view.Tier1MovieCreatorView;
 
+/**
+ * Controls data flow from the user to tier2
+ * 
+ * @author Stefan
+ *
+ */
 public class Tier1MovieCreatorController {
-	
+	/**
+	 * Socket used to connect to tier2 server
+	 */
 	private Socket serverSocket;
+	/**
+	 * The controller has access to the view through an interface
+	 */
 	private Tier1MovieCreatorView view;
+	/**
+	 * Stream for receiving information
+	 */
 	private DataInputStream inputStream;
+	/**
+	 * Stream for sending information
+	 */
 	private DataOutputStream outputStream;
-	// constructor
+
+	/**
+	 * Controller has access to the view through dependency injection. The
+	 * connection to tier2 is established, opens input and output streams
+	 * 
+	 * @param view
+	 */
 	public Tier1MovieCreatorController(Tier1MovieCreatorView view) {
 		try {
 			this.view = view;
 			view.show("Starting tier1 client");
-			serverSocket = new Socket("localhost", 1098);
+			serverSocket = new Socket(Init.getInstance().getIp(), Init.getInstance().getPort());
 
-			// Read from stream : String tmp = inputStream.readUTF();
 			inputStream = new DataInputStream(serverSocket.getInputStream());
-			// Write into stream : outputStream.writeUTF(new String("text to send"));
+
 			outputStream = new DataOutputStream(serverSocket.getOutputStream());
 
 		} catch (IOException e) {
@@ -35,8 +58,15 @@ public class Tier1MovieCreatorController {
 		}
 	}
 
+	/**
+	 * Depending on what input the view received from the user, the controller will
+	 * handle the data from the user. The controller can use the view in order to
+	 * display information to the user or ask them for input
+	 * 
+	 * @param choice
+	 */
 	public void execute(int choice) {
-		// Choices done for testing
+
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.serializeNulls();
 		Gson gson = gsonBuilder.create();
@@ -46,13 +76,13 @@ public class Tier1MovieCreatorController {
 			System.exit(1);
 			break;
 
-		case 1: // case 1 should create a movie object and send it to tier2
+		case 1:
 
 			view.show("Creating movie...\n");
 			String title = view.get("Title: ");
 			String yearCreation = view.get("Creation year: ");
 			String releaseDate = view.get("Release Date [DD/MM/YYYY] :");
-			// TODO Implement a class to check date format
+
 			String price = view.get("Price: ");
 			String nameStudio = view.get("Name of studio: ");
 			String nameDirector = view.get("Director name: ");
@@ -65,11 +95,10 @@ public class Tier1MovieCreatorController {
 
 			Package ADD = new Package("ADD", price, movie);
 
-			// send to tier 2 server
 			String json = gson.toJson(ADD);
 
 			try {
-				// sending 'ADD' package to tier 2 in json format
+
 				outputStream.writeUTF(json);
 				String answer = inputStream.readUTF();
 				Package request = gson.fromJson(answer, Package.class);
@@ -80,15 +109,14 @@ public class Tier1MovieCreatorController {
 			}
 			break;
 
-		case 2: // case 2 should get movies
+		case 2:
 			view.show("Getting movies...");
 			String answer;
 
 			try {
-				// receive from tier 2 server
+
 				Package GETMOVIES = new Package("GETMOVIES");
 
-				// send to tier 2 server
 				String jsonGET = gson.toJson(GETMOVIES);
 				outputStream.writeUTF(jsonGET);
 				answer = inputStream.readUTF();

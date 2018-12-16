@@ -16,22 +16,49 @@ import common.Package;
 import tier2.model.Validation;
 import tier2.view.Tier2MovieCreatorView;
 
+/**
+ * Class that handles the communication and flow of data from the client
+ * 
+ * @author Stefan
+ *
+ */
 public class Tier2MovieCreatorThreadHandler implements Runnable {
 
+	/**
+	 * Stream for receiving data from the client
+	 */
 	private DataInputStream inputStream;
+	/**
+	 * Stream for sending data to the client
+	 */
 	private DataOutputStream outputStream;
+	/**
+	 * Socket used to connect to tier3
+	 */
 	private Socket serverSocket;
+	/**
+	 * Access to the view
+	 */
 	private Tier2MovieCreatorView view;
+	/**
+	 * IP address of the client
+	 */
 	private String ip;
+	/**
+	 * A validation class used to check if movie is valid for being persisted
+	 */
 	private Validation validation = Validation.getInstance();
-
+	/**
+	 * Input and output streams are established. Access to the client socket given through dependency injection
+	 * @param clientSocket
+	 * @param view
+	 * @throws IOException
+	 */
 	public Tier2MovieCreatorThreadHandler(Socket clientSocket, Tier2MovieCreatorView view) throws IOException {
 		super();
 
-		// Read from client stream
 		inputStream = new DataInputStream(clientSocket.getInputStream());
 
-		// Write into client stream
 		outputStream = new DataOutputStream(clientSocket.getOutputStream());
 
 		this.view = view;
@@ -88,9 +115,9 @@ public class Tier2MovieCreatorThreadHandler implements Runnable {
 	}
 
 	/**
-	 * Method that takes the request Package then uses the model to create a reply
-	 * Package depending on the request
-	 * 
+	 * Method that takes the request Package and depending on the header field creates a reply
+	 * Package.
+	 * In order to create the reply package socket communication to tier3 is established in this method
 	 * @param request
 	 *            The Package received from the client
 	 * @return a Package containing what the client requested
@@ -110,7 +137,7 @@ public class Tier2MovieCreatorThreadHandler implements Runnable {
 		String line = "";
 		Package replyFromServer;
 		Package requestToServer;
-		
+
 		try {
 			view.show("Connecting to tier3 server");
 			serverSocket = new Socket("localhost", 1097);
@@ -150,38 +177,35 @@ public class Tier2MovieCreatorThreadHandler implements Runnable {
 
 		case Package.ADD:
 			String validationResult = validation.checkMovie(request.getMovie(), request.getBody());
-			if(validationResult.equals(""))
-			{
-			// Read from server stream
-			inputStream = new DataInputStream(serverSocket.getInputStream());
+			if (validationResult.equals("")) {
+				// Read from server stream
+				inputStream = new DataInputStream(serverSocket.getInputStream());
 
-			// Write into server stream
-			outputStream = new DataOutputStream(serverSocket.getOutputStream());
-			//Preparing the movie to be sent
-			request.getMovie().setPrice(Double.parseDouble(request.getBody()));
-			Movie movieToSend = request.getMovie();
-			// sending request to tier 3 server
-			requestToServer = new Package("ADD", movieToSend);
-			json = gson.toJson(requestToServer);
-			outputStream.writeUTF(json);
+				// Write into server stream
+				outputStream = new DataOutputStream(serverSocket.getOutputStream());
+				// Preparing the movie to be sent
+				request.getMovie().setPrice(Double.parseDouble(request.getBody()));
+				Movie movieToSend = request.getMovie();
+				// sending request to tier 3 server
+				requestToServer = new Package("ADD", movieToSend);
+				json = gson.toJson(requestToServer);
+				outputStream.writeUTF(json);
 
-			// getting reply from tier 3 server
-			// Makes sure the message is read in UTF8
-			in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF8"));
-			line = in.readLine();
-			view.show(ip + "> " + line);
+				// getting reply from tier 3 server
+				// Makes sure the message is read in UTF8
+				in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF8"));
+				line = in.readLine();
+				view.show(ip + "> " + line);
 
-			// convert from JSon
-			replyFromServer = gson.fromJson(line, Package.class);
-			view.show("package: " + replyFromServer.getBody());
-			
-			// Close the streams when you are done
-			inputStream.close();
-			outputStream.close();
-			return replyFromServer;
-			}
-			else
-			{
+				// convert from JSon
+				replyFromServer = gson.fromJson(line, Package.class);
+				view.show("package: " + replyFromServer.getBody());
+
+				// Close the streams when you are done
+				inputStream.close();
+				outputStream.close();
+				return replyFromServer;
+			} else {
 				return new Package("401", validationResult);
 			}
 
