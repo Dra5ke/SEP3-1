@@ -34,7 +34,6 @@ namespace Tier3ServerDatabase.controller
                 //The first 2 bytes are skipped because Java uses a special format of UTF 8
                 // Where is sends the length first
                 data += Encoding.UTF8.GetString(bytes, 2, bytesRec);
-                System.Console.WriteLine(data);
                 //Covert the Request to Package
                 Package request = JsonConvert.DeserializeObject<Package>(data);
                 // Print out the received message to the console.

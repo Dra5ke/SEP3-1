@@ -60,18 +60,13 @@ public class Tier2MovieManagerThreadHandler implements Runnable {
 				String line = inputStream.readUTF();
 				view.show(ip + "> " + line);
 
-				// convert from JSon
-				// getting request from client
 				Gson gson = new Gson();
 				System.out.println(line);
 				Package request = gson.fromJson(line, Package.class);
 				view.show("package: " + request.getHeader());
 
-				// creating reply by communicating with tier 3 server
 				Package reply = operation(request);
 
-				// convert to JSon
-				// sending reply to client
 				String json = gson.toJson(reply);
 				outputStream.writeUTF(json);
 				view.show("Server to " + ip + "> " + reply);
@@ -137,7 +132,7 @@ public class Tier2MovieManagerThreadHandler implements Runnable {
 			// Makes sure the message is read in UTF8
 			in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF8"));
 			line = in.readLine();
-			// line = inputStream.readUTF();
+			
 			view.show(ip + "> " + line);
 
 			// convert from JSon
@@ -151,27 +146,20 @@ public class Tier2MovieManagerThreadHandler implements Runnable {
 			return replyFromServer;
 
 		case Package.RENT:
-			// Read from database server stream
 			inputStream = new DataInputStream(serverSocket.getInputStream());
 
-			// Write into database server stream
 			outputStream = new DataOutputStream(serverSocket.getOutputStream());
-			// sending request to tier 3 server
 
 			json = gson.toJson(request);
 			outputStream.writeUTF(json);
 
-			// getting reply from tier 3 server
-			// Makes sure the message is read in UTF8
 			in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream(), "UTF8"));
 			line = in.readLine();
 			view.show(ip + "> " + line);
 
-			// convert from JSon
 			replyFromServer = gson.fromJson(line, Package.class);
 			view.show("package: " + replyFromServer.getBody());
 
-			// Close the streams when you are done
 			inputStream.close();
 			outputStream.close();
 

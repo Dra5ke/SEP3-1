@@ -91,16 +91,7 @@ public class Tier2MovieSchedulerThreadHandler implements Runnable {
 			while (continueCommuticating) {
 
 				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				//System.out.println("test");
-				//System.out.println(in.readLine());
-				//String line = in.readLine();
-				//in.close();
-				//String line = inputStream.readUTF();
 				
-				//The code line below is the problem, also we tried converting what the stream read to a string
-				
-				// convert from JSon
-				// getting request from client
 				GsonBuilder gsonBuilder = new GsonBuilder();
 				gsonBuilder.serializeNulls();
 				Gson gson = gsonBuilder.create();
